@@ -161,7 +161,9 @@ do
   -- Preview substitutions live, as you type!
   vim.o.inccommand = 'split'
 
-  -- Show which line your cursor is on
+  -- Show which line your cursor is on (only in the focused window, see the
+  -- 'kickstart-cursorline-focus' autocommand below, which also makes this
+  -- double as a focused-window indicator when you have multiple splits open)
   vim.o.cursorline = true
 
   -- Minimal number of screen lines to keep above and below the cursor.
@@ -250,6 +252,21 @@ do
     desc = 'Highlight when yanking (copying) text',
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
+  })
+
+  -- Only show 'cursorline' in the currently focused window, so with multiple
+  -- splits open (editor, terminal, Claude, ...) it's obvious at a glance
+  -- which one has focus.
+  local cursorline_focus_augroup = vim.api.nvim_create_augroup('kickstart-cursorline-focus', { clear = true })
+  vim.api.nvim_create_autocmd({ 'WinEnter', 'BufEnter' }, {
+    desc = 'Enable cursorline in the focused window',
+    group = cursorline_focus_augroup,
+    callback = function() vim.wo.cursorline = true end,
+  })
+  vim.api.nvim_create_autocmd('WinLeave', {
+    desc = 'Disable cursorline in unfocused windows',
+    group = cursorline_focus_augroup,
+    callback = function() vim.wo.cursorline = false end,
   })
 end
 
