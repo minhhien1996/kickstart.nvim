@@ -26,3 +26,11 @@ vim.keymap.set('n', '<leader>ab', '<cmd>ClaudeCodeAdd %<cr>', { desc = 'AI: Add 
 vim.keymap.set('n', '<leader>aa', '<cmd>ClaudeCodeDiffAccept<cr>', { desc = 'AI: [A]ccept diff' })
 vim.keymap.set('n', '<leader>ad', '<cmd>ClaudeCodeDiffDeny<cr>', { desc = 'AI: [D]eny diff' })
 vim.keymap.set('v', '<leader>as', '<cmd>ClaudeCodeSend<cr>', { desc = 'AI: [S]end selection to Claude' })
+
+-- <leader>af only works in Normal mode, so it's unreachable while typing in the
+-- Claude terminal (terminal-mode keystrokes go straight to the `claude` process).
+-- <C-,> is bound in both Normal and Terminal mode as a single toggle that always
+-- works: it drops out of terminal-mode first, then hands off to the smart focus
+-- toggle, so one keystroke gets you back to the editor from inside the chat.
+vim.keymap.set('n', '<C-,>', '<cmd>ClaudeCodeFocus<cr>', { desc = 'AI: Focus/return from Claude' })
+vim.keymap.set('t', '<C-,>', [[<C-\><C-n><Cmd>ClaudeCodeFocus<CR>]], { desc = 'AI: Focus/return from Claude' })
