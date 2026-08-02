@@ -14,6 +14,11 @@ require('claudecode').setup {
     -- Use Neovim's built-in terminal split so this doesn't pull in snacks.nvim.
     provider = 'native',
   },
+  diff_opts = {
+    -- Inline single-buffer diff instead of a side-by-side/stacked split —
+    -- avoids squeezed panes on a small laptop screen.
+    layout = 'unified',
+  },
 }
 
 -- [[ Keymaps ]]
