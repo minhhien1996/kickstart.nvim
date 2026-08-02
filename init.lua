@@ -173,6 +173,11 @@ do
   -- instead raise a dialog asking if you wish to save the current file(s)
   -- See `:help 'confirm'`
   vim.o.confirm = true
+
+  -- Set the terminal tab/window title to "neovim (<cwd dir name>)" instead
+  -- of the terminal's default. See `:help 'titlestring'`
+  vim.o.title = true
+  vim.o.titlestring = "neovim (%{fnamemodify(getcwd(), ':t')})"
 end
 
 -- ============================================================
