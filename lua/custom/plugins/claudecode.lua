@@ -75,3 +75,22 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
     end
   end,
 })
+
+-- [[ Don't let indent guides punch holes in the diff highlight ]]
+-- The unified diff buffer highlights whole added/deleted lines via
+-- `line_hl_group` extmarks (see diff_inline.lua), but indent-blankline's own
+-- indent-guide virtual text draws over the leading-whitespace columns with
+-- its own (unhighlighted) background — visually cutting the green/red out
+-- of the indentation. Indent guides aren't meaningful in a diff view anyway,
+-- so just disable ibl for that one buffer.
+vim.api.nvim_create_autocmd('User', {
+  pattern = 'ClaudeCodeDiffOpened',
+  group = claudecode_bg_augroup,
+  callback = function(ev)
+    local diff_window = ev.data and ev.data.diff_window
+    if diff_window and vim.api.nvim_win_is_valid(diff_window) then
+      local ok, ibl = pcall(require, 'ibl')
+      if ok then ibl.setup_buffer(vim.api.nvim_win_get_buf(diff_window), { enabled = false }) end
+    end
+  end,
+})
