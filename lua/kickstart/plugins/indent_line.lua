@@ -3,4 +3,9 @@
 -- Enable `lukas-reineke/indent-blankline.nvim`
 -- See `:help ibl`
 vim.pack.add { 'https://github.com/lukas-reineke/indent-blankline.nvim' }
-require('ibl').setup {}
+require('ibl').setup {
+  -- Hide guides for every indent level...
+  indent = { char = '' },
+  -- ...and show a thin guide only for the current block (scope).
+  scope = { char = '▏' },
+}
