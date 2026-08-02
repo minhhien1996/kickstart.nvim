@@ -268,6 +268,20 @@ do
     group = cursorline_focus_augroup,
     callback = function() vim.wo.cursorline = false end,
   })
+
+  -- Don't prompt to save unnamed scratch buffers on quit (e.g. the empty
+  -- buffer left behind next to neo-tree, which can get accidentally marked
+  -- 'modified' by a stray keystroke or autopairs). Named files with real
+  -- unsaved changes still prompt as normal via 'confirm'.
+  vim.api.nvim_create_autocmd('QuitPre', {
+    desc = "Don't prompt to save unnamed scratch buffers",
+    group = vim.api.nvim_create_augroup('kickstart-no-confirm-scratch', { clear = true }),
+    callback = function()
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_get_name(buf) == '' and vim.bo[buf].buftype == '' then vim.bo[buf].modified = false end
+      end
+    end,
+  })
 end
 
 -- ============================================================
