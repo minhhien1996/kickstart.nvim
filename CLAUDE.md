@@ -43,3 +43,14 @@ New personal plugins belong in `lua/custom/plugins/<name>.lua`, following the `v
 ### LSP config
 
 Language servers are declared per-language in a table inside the `-- [[ LSP Configuration ]]` block and installed via `mason.nvim`/`mason-lspconfig.nvim`; `blink.cmp` supplies completion capabilities merged into each server's config. Keymaps and LSP-attach behavior (document highlight, inlay hints toggle, etc.) are wired through an `LspAttach` autocommand rather than per-server `on_attach` functions.
+
+## Adding a new feature: priority order
+
+When asked to add a new feature or capability, prefer solutions in this order — don't reach for a plugin or custom script if a cheaper option already covers it:
+
+1. **Built-in Neovim** — a native option, command, or mapping (e.g. `gcc`/`gc` for commenting, added in 0.10) that needs no plugin at all.
+2. **Built-in kickstart** — something already vendored under `lua/kickstart/plugins/*.lua` (see "Two extension points" above) that just needs its `require` uncommented in `init.lua`.
+3. **A popular, actively-maintained plugin** — installed via `vim.pack.add` following the existing pattern, when the built-in options don't cover the need.
+4. **A custom script** — hand-rolled Lua under `lua/custom/plugins/<name>.lua`, only once the above are ruled out.
+
+Check each tier before moving to the next, and say which tier was chosen and why.
