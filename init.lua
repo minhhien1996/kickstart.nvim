@@ -889,7 +889,10 @@ do
     },
 
     sources = {
-      default = { 'lsp', 'path', 'snippets' },
+      -- 'buffer' suggests words already typed in the current buffer, useful
+      -- for filetypes with light/no LSP coverage (e.g. yaml) and to avoid
+      -- re-typing identifiers regardless of LSP.
+      default = { 'lsp', 'path', 'snippets', 'buffer' },
     },
 
     snippets = { preset = 'luasnip' },
