@@ -39,3 +39,39 @@ vim.keymap.set('v', '<leader>as', '<cmd>ClaudeCodeSend<cr>', { desc = 'AI: [S]en
 -- toggle, so one keystroke gets you back to the editor from inside the chat.
 vim.keymap.set('n', '<C-,>', '<cmd>ClaudeCodeFocus<cr>', { desc = 'AI: Focus/return from Claude' })
 vim.keymap.set('t', '<C-,>', [[<C-\><C-n><Cmd>ClaudeCodeFocus<CR>]], { desc = 'AI: Focus/return from Claude' })
+
+-- [[ Distinct panel background, matching neo-tree ]]
+-- Give the Claude terminal window the same sidebar-panel background
+-- tokyonight already uses for neo-tree ('NeoTreeNormal'/'NeoTreeNormalNC'),
+-- so it visually reads as a panel rather than a plain editor split. Read
+-- dynamically (rather than hardcoding a color) so it stays correct across
+-- colorscheme/light-dark changes; registered as a ColorScheme autocmd since
+-- that's when tokyonight (re)defines 'NeoTreeNormal'.
+local function set_claudecode_panel_bg()
+  local sidebar_bg = vim.api.nvim_get_hl(0, { name = 'NeoTreeNormal', link = false }).bg
+  vim.api.nvim_set_hl(0, 'ClaudeCodeNormal', { bg = sidebar_bg })
+end
+set_claudecode_panel_bg() -- the colorscheme is already loaded by the time this file runs
+
+local claudecode_bg_augroup = vim.api.nvim_create_augroup('claudecode-panel-bg', { clear = true })
+vim.api.nvim_create_autocmd('ColorScheme', {
+  group = claudecode_bg_augroup,
+  callback = set_claudecode_panel_bg,
+})
+
+vim.api.nvim_create_autocmd('BufWinEnter', {
+  desc = 'Apply the panel background to the Claude terminal window',
+  group = claudecode_bg_augroup,
+  callback = function(ev)
+    local claude_winhighlight = 'Normal:ClaudeCodeNormal,NormalNC:ClaudeCodeNormal'
+    if ev.buf == require('claudecode.terminal').get_active_terminal_bufnr() then
+      vim.wo.winhighlight = claude_winhighlight
+    elseif vim.wo.winhighlight == claude_winhighlight then
+      -- A window's local options (including winhighlight) carry over to a
+      -- split made from it, or to a different buffer opened in the same
+      -- window later — only clean up after ourselves (not e.g. neo-tree's
+      -- own winhighlight, if this ever happened to be its window).
+      vim.wo.winhighlight = ''
+    end
+  end,
+})
