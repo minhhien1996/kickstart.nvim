@@ -62,17 +62,27 @@ vim.api.nvim_create_autocmd('ColorScheme', {
 vim.api.nvim_create_autocmd('BufWinEnter', {
   desc = 'Apply the panel background to the Claude terminal window',
   group = claudecode_bg_augroup,
-  callback = function(ev)
-    local claude_winhighlight = 'Normal:ClaudeCodeNormal,NormalNC:ClaudeCodeNormal'
-    if ev.buf == require('claudecode.terminal').get_active_terminal_bufnr() then
-      vim.wo.winhighlight = claude_winhighlight
-    elseif vim.wo.winhighlight == claude_winhighlight then
-      -- A window's local options (including winhighlight) carry over to a
-      -- split made from it, or to a different buffer opened in the same
-      -- window later — only clean up after ourselves (not e.g. neo-tree's
-      -- own winhighlight, if this ever happened to be its window).
-      vim.wo.winhighlight = ''
-    end
+  callback = function()
+    local win = vim.api.nvim_get_current_win()
+    -- Deferred to next tick: claudecode's native provider fires BufWinEnter
+    -- (via `:enew`, ahead of `termopen()`) before it finishes assigning its
+    -- own tracked bufnr, so get_active_terminal_bufnr() isn't reliable
+    -- synchronously here — by the time this runs, open_terminal() has
+    -- returned and the state is settled.
+    vim.schedule(function()
+      if not vim.api.nvim_win_is_valid(win) then return end
+      local claude_winhighlight = 'Normal:ClaudeCodeNormal,NormalNC:ClaudeCodeNormal'
+      local buf = vim.api.nvim_win_get_buf(win)
+      if buf == require('claudecode.terminal').get_active_terminal_bufnr() then
+        vim.api.nvim_set_option_value('winhighlight', claude_winhighlight, { win = win })
+      elseif vim.api.nvim_get_option_value('winhighlight', { win = win }) == claude_winhighlight then
+        -- A window's local options (including winhighlight) carry over to a
+        -- split made from it, or to a different buffer opened in the same
+        -- window later — only clean up after ourselves (not e.g. neo-tree's
+        -- own winhighlight, if this ever happened to be its window).
+        vim.api.nvim_set_option_value('winhighlight', '', { win = win })
+      end
+    end)
   end,
 })
 
