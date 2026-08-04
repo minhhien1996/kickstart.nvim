@@ -14,6 +14,10 @@ require('neo-tree').setup {
     window = {
       mappings = {
         ['\\'] = 'close_window',
+        ['<C-v>'] = 'open_vsplit',
+        ['<C-x>'] = 'open_split',
+        ['s'] = 'none',
+        ['S'] = 'none',
       },
     },
   },
