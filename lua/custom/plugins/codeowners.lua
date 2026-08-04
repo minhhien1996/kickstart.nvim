@@ -86,9 +86,12 @@ local function lookup_owners(filepath)
   end
 end
 
+-- Populate owners cache from BufEnter/BufWritePost — never from the statusline
+-- itself, which can be called in fast/restricted contexts (e.g. tree-sitter).
 vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost' }, {
   callback = function(ev)
-    _owners_cache[ev.buf] = nil
+    local path = vim.api.nvim_buf_get_name(ev.buf)
+    _owners_cache[ev.buf] = path ~= '' and lookup_owners(path) or false
   end,
 })
 
@@ -111,10 +114,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
       local search = mini_sl.section_searchcount and mini_sl.section_searchcount { trunc_width = 75 } or ''
 
       local bufnr = vim.api.nvim_get_current_buf()
-      if _owners_cache[bufnr] == nil then
-        local path = vim.api.nvim_buf_get_name(bufnr)
-        _owners_cache[bufnr] = path ~= '' and lookup_owners(path) or false
-      end
       local owners = _owners_cache[bufnr] or ''
 
       return mini_sl.combine_groups {
