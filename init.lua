@@ -218,6 +218,20 @@ do
 
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+  vim.api.nvim_create_autocmd('FileType', {
+    pattern = 'qf',
+    callback = function()
+      vim.keymap.set('n', 'dd', function()
+        local qflist = vim.fn.getqflist()
+        local lnum = vim.fn.line '.'
+        table.remove(qflist, lnum)
+        vim.fn.setqflist(qflist, 'r')
+        -- Move cursor to same line (or last line if we deleted the last entry)
+        vim.api.nvim_win_set_cursor(0, { math.min(lnum, #qflist), 0 })
+      end, { buffer = true, desc = 'Remove quickfix entry' })
+    end,
+  })
+
   -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
   -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
   -- is not what someone will guess without a bit more experience.
