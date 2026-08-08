@@ -22,6 +22,10 @@ local function toggle_terminal()
   else
     vim.cmd.terminal()
     term_buf = vim.api.nvim_get_current_buf()
+    -- Tag so lua/custom/plugins/edgy.lua can single this buffer out from
+    -- other terminal-buftype buffers (e.g. claudecode's) and decide which
+    -- screen edge to pin it to.
+    vim.b[term_buf].is_scratch_terminal = true
   end
 
   vim.cmd.startinsert()
