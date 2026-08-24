@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A fork of [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim), a single-file, fully-commented Neovim configuration meant to be read top-to-bottom and extended in place — it is explicitly *not* a distribution. Almost all core config lives in `init.lua`; treat that file as the primary reference before assuming behavior lives elsewhere.
 
+## Personal repo — no guardrails needed
+
+This is a personal dotfiles repo with a single `master` branch. Commit directly to `master` — do **not** create feature branches, do **not** invoke `/eh:commit` or any EH workflow skill, and do **not** apply protected-branch logic. Plain `git add` + `git commit` is the right workflow here.
+
 ## Commands
 
 - **Format check**: `stylua --check .` (config in `.stylua.toml`: 2-space indent, 160 col width, single quotes preferred, no parens on single-arg calls). CI runs this via `.github/workflows/stylua.yml` on every PR.

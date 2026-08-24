@@ -40,6 +40,11 @@ vim.keymap.set('v', '<leader>as', '<cmd>ClaudeCodeSend<cr>', { desc = 'AI: [S]en
 vim.keymap.set('n', '<C-,>', '<cmd>ClaudeCodeFocus<cr>', { desc = 'AI: Focus/return from Claude' })
 vim.keymap.set('t', '<C-,>', [[<C-\><C-n><Cmd>ClaudeCodeFocus<CR>]], { desc = 'AI: Focus/return from Claude' })
 
+-- Scroll the Claude terminal buffer from terminal mode without needing to exit it.
+-- <C-\><C-n> exits terminal mode momentarily, scrolls, then re-enters.
+vim.keymap.set('t', '<C-u>', [[<C-\><C-n><C-u>]], { desc = 'Scroll Claude terminal up' })
+vim.keymap.set('t', '<C-d>', [[<C-\><C-n><C-d>]], { desc = 'Scroll Claude terminal down' })
+
 -- [[ Distinct panel background, matching neo-tree ]]
 -- Give the Claude terminal window the same sidebar-panel background
 -- tokyonight already uses for neo-tree ('NeoTreeNormal'/'NeoTreeNormalNC'),

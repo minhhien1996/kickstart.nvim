@@ -218,6 +218,10 @@ do
 
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+  vim.api.nvim_create_autocmd('TermOpen', {
+    callback = function() vim.bo.scrollback = 50000 end,
+  })
+
   vim.api.nvim_create_autocmd('FileType', {
     pattern = 'qf',
     callback = function()
@@ -553,7 +557,11 @@ do
       --   i = { ['<c-enter>'] = 'to_fuzzy_refine' },
       -- },
     },
-    -- pickers = {}
+    pickers = {
+      find_files = { hidden = true },
+      live_grep = { additional_args = { '--hidden' } },
+      grep_string = { additional_args = { '--hidden' } },
+    },
     extensions = {
       ['ui-select'] = { require('telescope.themes').get_dropdown() },
     },
