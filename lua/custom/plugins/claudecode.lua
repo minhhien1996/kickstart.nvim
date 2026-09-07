@@ -23,7 +23,6 @@ require('claudecode').setup {
 
 -- [[ Keymaps ]]
 vim.keymap.set('n', '<leader>ac', '<cmd>ClaudeCode<cr>', { desc = 'AI: [C]laude toggle' })
-vim.keymap.set('n', '<leader>af', '<cmd>ClaudeCodeFocus<cr>', { desc = 'AI: [F]ocus Claude' })
 vim.keymap.set('n', '<leader>ar', '<cmd>ClaudeCode --resume<cr>', { desc = 'AI: [R]esume Claude' })
 vim.keymap.set('n', '<leader>aC', '<cmd>ClaudeCode --continue<cr>', { desc = 'AI: [C]ontinue Claude' })
 vim.keymap.set('n', '<leader>am', '<cmd>ClaudeCodeSelectModel<cr>', { desc = 'AI: Select [m]odel' })
@@ -37,6 +36,10 @@ vim.keymap.set('v', '<leader>as', '<cmd>ClaudeCodeSend<cr>', { desc = 'AI: [S]en
 -- <C-,> is bound in both Normal and Terminal mode as a single toggle that always
 -- works: it drops out of terminal-mode first, then hands off to the smart focus
 -- toggle, so one keystroke gets you back to the editor from inside the chat.
+-- Note: claudecode's native provider calls startinsert itself; windows.nvim is
+-- configured to ignore terminal buftype so its deferred feedkeys pass can't
+-- override the mode after focus lands.
+vim.keymap.set('n', '<leader>af', '<cmd>ClaudeCodeFocus<cr>', { desc = 'AI: [F]ocus Claude' })
 vim.keymap.set('n', '<C-,>', '<cmd>ClaudeCodeFocus<cr>', { desc = 'AI: Focus/return from Claude' })
 vim.keymap.set('t', '<C-,>', [[<C-\><C-n><Cmd>ClaudeCodeFocus<CR>]], { desc = 'AI: Focus/return from Claude' })
 
