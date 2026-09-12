@@ -498,6 +498,12 @@ do
   -- - sr)'  - [S]urround [R]eplace [)] [']
   require('mini.surround').setup()
 
+  -- Zoom the focused window to (almost) full screen and back with one key —
+  -- rather than fighting with too many/too-thin splits, just zoom in on the
+  -- one you're reading, then zoom out again to restore the layout exactly.
+  require('mini.misc').setup()
+  vim.keymap.set('n', '<leader>z', MiniMisc.zoom, { desc = '[Z]oom current window' })
+
   -- Simple and easy statusline.
   --  You could remove this setup call if you don't like it,
   --  and try some other statusline plugin
