@@ -13,6 +13,8 @@ require('claudecode').setup {
   terminal = {
     -- Use Neovim's built-in terminal split so this doesn't pull in snacks.nvim.
     provider = 'native',
+    -- Slightly wider than the 0.30 default — more room to read Claude's output.
+    split_width_percentage = 0.40,
   },
   diff_opts = {
     -- Inline single-buffer diff instead of a side-by-side/stacked split —
