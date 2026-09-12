@@ -1,6 +1,6 @@
--- Enforce a 2×2 cap on the main editing area using LRU eviction (1×2 on
--- narrow screens, see below), and auto-convert horizontal splits into
--- vertical ones there too.
+-- Enforce a 2×2 cap on the main editing area using LRU eviction (2×1 on
+-- narrow screens, see below), and auto-convert vertical splits into
+-- horizontal ones there too.
 --
 -- Window focus order is tracked on WinEnter. When a new split would push the
 -- main-window count past the cap, the least recently used main window is
@@ -9,14 +9,15 @@
 -- both the count and eviction. Floating windows, quickfix, help and terminal
 -- buffers are also excluded.
 --
--- On a screen narrow enough that stacked horizontal splits get unreadably
--- short (see NARROW_COLUMNS below), a horizontal split among the main
--- windows is immediately closed and reopened as a vertical split instead.
--- This only ever fires in the main editing area — neo-tree/Claude/the
--- scratch terminal already open as vertical splits (or are excluded above)
--- no matter the screen width. Since stacking is off the table there, the
--- main-window cap also drops to 2 (1×2) instead of 4 (2×2) — otherwise
--- you'd still end up with four skinny vertical slivers.
+-- On a screen narrow enough that side-by-side splits get unreadably thin
+-- (see NARROW_COLUMNS below), a vertical split among the main windows is
+-- immediately closed and reopened as a horizontal split instead — full
+-- column width matters more for reading code than extra height does. This
+-- only ever fires in the main editing area — neo-tree/Claude/the scratch
+-- terminal already open as vertical splits (or are excluded above) no
+-- matter the screen width. Since side-by-side is off the table there, the
+-- main-window cap also drops to 2 (2×1) instead of 4 (2×2) — otherwise
+-- you'd still end up with four skinny horizontal slivers.
 
 -- Columns below this are treated as a small/laptop screen rather than a big
 -- external monitor. Comfortably between the two measured `:echo &columns`
@@ -52,7 +53,7 @@ vim.api.nvim_create_autocmd('WinEnter', {
 })
 
 vim.api.nvim_create_autocmd('WinNew', {
-  desc = 'Cap editor splits (2×2, or 1×2 on a narrow screen) — evict the LRU window',
+  desc = 'Cap editor splits (2×2, or 2×1 on a narrow screen) — evict the LRU window',
   callback = function()
     local main_wins = vim.tbl_filter(is_main_win, vim.api.nvim_list_wins())
     if #main_wins <= max_main_wins() then return end
@@ -86,7 +87,7 @@ vim.api.nvim_create_autocmd('WinNew', {
   end,
 })
 
--- [[ Auto-convert horizontal splits to vertical on narrow screens ]]
+-- [[ Auto-convert vertical splits to horizontal on narrow screens ]]
 
 ---Finds the immediate layout-group kind ('row' side-by-side, 'col' stacked)
 ---that `win` sits in, per `winlayout()`'s nested tree.
@@ -105,11 +106,11 @@ local function parent_split_kind(win, node)
   return nil
 end
 
--- Guards against the vsplit created below re-triggering this same
+-- Guards against the split created below re-triggering this same
 -- conversion (it fires its own WinNew).
 local converting = false
 
-local function convert_to_vertical(win)
+local function convert_to_horizontal(win)
   if converting or not vim.api.nvim_win_is_valid(win) then return end
   local alt_win = vim.fn.win_getid(vim.fn.winnr '#')
   if alt_win == 0 or alt_win == win or not vim.api.nvim_win_is_valid(alt_win) then return end
@@ -121,7 +122,7 @@ local function convert_to_vertical(win)
   pcall(function()
     vim.api.nvim_win_close(win, false)
     vim.api.nvim_set_current_win(alt_win)
-    vim.cmd.vsplit()
+    vim.cmd.split()
     local new_win = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(new_win, buf)
     if ok_cursor then pcall(vim.api.nvim_win_set_cursor, new_win, cursor) end
@@ -130,7 +131,7 @@ local function convert_to_vertical(win)
 end
 
 vim.api.nvim_create_autocmd('WinNew', {
-  desc = 'On a narrow screen, turn a new horizontal split into a vertical one',
+  desc = 'On a narrow screen, turn a new vertical split into a horizontal one',
   callback = function()
     if converting or not is_narrow() then return end
     local win = vim.api.nvim_get_current_win()
@@ -141,7 +142,7 @@ vim.api.nvim_create_autocmd('WinNew', {
     vim.schedule(function()
       if converting or not (vim.api.nvim_win_is_valid(win) and is_main_win(win)) then return end
       local ok, kind = pcall(parent_split_kind, win)
-      if ok and kind == 'col' then convert_to_vertical(win) end
+      if ok and kind == 'row' then convert_to_horizontal(win) end
     end)
   end,
 })
