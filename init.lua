@@ -555,6 +555,7 @@ do
     gh 'nvim-lua/plenary.nvim',
     gh 'nvim-telescope/telescope.nvim',
     gh 'nvim-telescope/telescope-ui-select.nvim',
+    gh 'nvim-telescope/telescope-live-grep-args.nvim',
   }
   if vim.fn.executable 'make' == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
 
@@ -579,12 +580,16 @@ do
     },
     extensions = {
       ['ui-select'] = { require('telescope.themes').get_dropdown() },
+      live_grep_args = {
+        additional_args = { '--hidden' },
+      },
     },
   }
 
   -- Enable Telescope extensions if they are installed
   pcall(require('telescope').load_extension, 'fzf')
   pcall(require('telescope').load_extension, 'ui-select')
+  pcall(require('telescope').load_extension, 'live_grep_args')
 
   -- See `:help telescope.builtin`
   local builtin = require 'telescope.builtin'
@@ -593,7 +598,16 @@ do
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+  -- live_grep_args lets you type raw ripgrep flags straight into the search
+  -- prompt to exclude paths, e.g. `foo -g !node_modules` or `foo -g !*.md`
+  -- (auto-quoted for you) — plain text search still works exactly like
+  -- builtin.live_grep otherwise.
+  vim.keymap.set(
+    'n',
+    '<leader>sg',
+    function() require('telescope').extensions.live_grep_args.live_grep_args() end,
+    { desc = '[S]earch by [G]rep (supports -g !pattern to exclude)' }
+  )
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
