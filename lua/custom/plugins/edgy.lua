@@ -60,6 +60,6 @@ require('edgy').setup {
   -- it — this just keeps the resulting layout sane at both sizes.
   options = {
     left = { size = 0.20 },
-    right = { size = 0.30 },
+    right = { size = 0.40 },
   },
 }
