@@ -597,45 +597,16 @@ do
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  -- Plain live_grep, except a literal ` -g ` anywhere in the prompt marks
-  -- the start of inline ripgrep glob args, e.g. typing
-  -- `findme -g !node_modules -g !*.md` excludes both paths, appended (or
-  -- removed) live as you keep typing/see results -- no need to know the
-  -- exclusion up front. This is deliberately NOT a general shell-arg
-  -- parser (that's telescope-live-grep-args.nvim, which we tried and
-  -- dropped: it silently splits every space once the prompt happens to
-  -- start with a quote/dash, mangling multi-word searches). Only the one
-  -- fixed ` -g ` marker is special, so search text before it always keeps
-  -- every space and character exactly as typed.
-  local function live_grep_with_inline_glob()
-    local base_args = vim.deepcopy(require('telescope.config').values.vimgrep_arguments)
-    vim.list_extend(base_args, { '--hidden' })
-
-    local cmd_generator = function(prompt)
-      if not prompt or prompt == '' then return nil end
-      local marker_start = prompt:find ' %-g '
-      local search_term = marker_start and prompt:sub(1, marker_start - 1) or prompt
-      if search_term == '' then return nil end
-
-      local args = vim.deepcopy(base_args)
-      if marker_start then
-        for glob in prompt:sub(marker_start):gmatch '%-g%s+(%S+)' do
-          vim.list_extend(args, { '-g', (glob:gsub('^([\'"])(.*)%1$', '%2')) })
-        end
-      end
-      return vim.iter({ args, '--', search_term }):flatten():totable()
-    end
-
-    require('telescope.pickers')
-      .new({}, {
-        prompt_title = 'Live Grep',
-        finder = require('telescope.finders').new_job(cmd_generator, require('telescope.make_entry').gen_from_vimgrep {}, nil, nil),
-        previewer = require('telescope.config').values.grep_previewer {},
-        sorter = require('telescope.sorters').highlighter_only {},
-      })
-      :find()
-  end
-  vim.keymap.set('n', '<leader>sg', live_grep_with_inline_glob, { desc = '[S]earch by [G]rep (` -g !pattern` to exclude inline)' })
+  -- Plain live_grep. To exclude something after seeing noisy results,
+  -- press <C-Space> (telescope's built-in "fuzzy refine" action) to lock
+  -- in the current ripgrep matches and switch the prompt into fuzzy-filter
+  -- mode over them, powered by the already-installed
+  -- telescope-fzf-native.nvim -- which supports real fzf query syntax,
+  -- including `!term` to exclude entries containing it (matches against
+  -- the full line, path included, so `!node_modules` works). No custom
+  -- prompt parsing needed; both hand-rolled attempts at inline `-g` exclude
+  -- syntax broke on spaces in the search term.
+  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep (<C-Space> to fuzzy-refine/exclude with !term)' })
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
