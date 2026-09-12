@@ -10,13 +10,6 @@
 
 vim.pack.add { 'https://github.com/folke/edgy.nvim' }
 
--- Columns above this are treated as "big external monitor" rather than the
--- MacBook Air's built-in screen, so the ad-hoc terminal (<leader>tt) docks
--- to the right instead of the bottom. Comfortably between the two measured
--- `:echo &columns` values: 206 on the MacBook Air, 425 on the 32" 4K.
-local WIDE_COLUMNS = 300
-local function is_wide() return vim.o.columns >= WIDE_COLUMNS end
-
 local function is_scratch_terminal(buf) return vim.b[buf].is_scratch_terminal == true end
 
 require('edgy').setup {
@@ -37,18 +30,10 @@ require('edgy').setup {
     {
       title = 'Terminal',
       ft = '',
-      -- Only claim the scratch terminal once there's enough width to
-      -- spare (see WIDE_COLUMNS above). Re-evaluated on every resize, so
-      -- moving the window to/from the big monitor flips it live between
-      -- here and `bottom` below without needing to reopen it.
-      filter = function(buf) return is_scratch_terminal(buf) and is_wide() end,
-    },
-  },
-  bottom = {
-    {
-      title = 'Terminal',
-      ft = '',
-      filter = function(buf) return is_scratch_terminal(buf) and not is_wide() end,
+      -- Always dock the scratch terminal (<leader>tt) to the right, below
+      -- Claude — it's listed second in this edgebar, and edgy stacks
+      -- same-edge views top-to-bottom in list order.
+      filter = is_scratch_terminal,
     },
   },
   -- Edgebar widths as fractions of `columns` rather than fixed column
