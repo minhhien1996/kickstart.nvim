@@ -23,6 +23,18 @@ require('neo-tree').setup {
         ['<C-x>'] = 'open_split',
         ['s'] = 'none',
         ['S'] = 'none',
+        -- 'y' is already neo-tree's own copy-to-(internal)-clipboard command
+        -- (for move/paste within the tree), so this yanks the absolute path
+        -- of the node under the cursor to the *system* clipboard instead.
+        -- Editor-side equivalent: <leader>yp in init.lua's Basic Keymaps.
+        ['Y'] = {
+          function(state)
+            local path = state.tree:get_node():get_id()
+            vim.fn.setreg('+', path)
+            vim.notify('Copied: ' .. path)
+          end,
+          desc = 'copy_path_to_clipboard',
+        },
       },
     },
   },

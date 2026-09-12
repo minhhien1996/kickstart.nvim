@@ -265,6 +265,15 @@ do
   -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
   -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
+  -- Yank the current buffer's absolute file path to the system clipboard.
+  -- The neo-tree equivalent (for the file under the cursor there instead of
+  -- the current buffer) is the `Y` mapping in lua/kickstart/plugins/neo-tree.lua.
+  vim.keymap.set('n', '<leader>yp', function()
+    local path = vim.fn.expand '%:p'
+    vim.fn.setreg('+', path)
+    vim.notify('Copied: ' .. path)
+  end, { desc = '[Y]ank file [p]ath' })
+
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
 
