@@ -1,25 +1,29 @@
--- Enforce a 2×2 cap on the main editing area using LRU eviction, and
--- auto-convert horizontal splits into vertical ones on narrow screens.
+-- Enforce a 2×2 cap on the main editing area using LRU eviction (1×2 on
+-- narrow screens, see below), and auto-convert horizontal splits into
+-- vertical ones there too.
 --
 -- Window focus order is tracked on WinEnter. When a new split would push the
--- main-window count past 4, the least recently used main window is closed to
--- make room — the new split stays open. Edgy-managed windows (neo-tree,
--- Claude, scratch terminal) set winfixwidth and are excluded from both the
--- count and eviction. Floating windows, quickfix, help and terminal buffers
--- are also excluded.
+-- main-window count past the cap, the least recently used main window is
+-- closed to make room — the new split stays open. Edgy-managed windows
+-- (neo-tree, Claude, scratch terminal) set winfixwidth and are excluded from
+-- both the count and eviction. Floating windows, quickfix, help and terminal
+-- buffers are also excluded.
 --
 -- On a screen narrow enough that stacked horizontal splits get unreadably
 -- short (see NARROW_COLUMNS below), a horizontal split among the main
 -- windows is immediately closed and reopened as a vertical split instead.
 -- This only ever fires in the main editing area — neo-tree/Claude/the
 -- scratch terminal already open as vertical splits (or are excluded above)
--- no matter the screen width.
+-- no matter the screen width. Since stacking is off the table there, the
+-- main-window cap also drops to 2 (1×2) instead of 4 (2×2) — otherwise
+-- you'd still end up with four skinny vertical slivers.
 
 -- Columns below this are treated as a small/laptop screen rather than a big
 -- external monitor. Comfortably between the two measured `:echo &columns`
 -- values: 206 on the MacBook Air, 425 on the 32" 4K.
 local NARROW_COLUMNS = 300
 local function is_narrow() return vim.o.columns < NARROW_COLUMNS end
+local function max_main_wins() return is_narrow() and 2 or 4 end
 
 local win_order = {} -- window ids ordered by last focus, oldest first
 
@@ -48,10 +52,10 @@ vim.api.nvim_create_autocmd('WinEnter', {
 })
 
 vim.api.nvim_create_autocmd('WinNew', {
-  desc = 'Cap editor splits at four (2×2) — evict the LRU window',
+  desc = 'Cap editor splits (2×2, or 1×2 on a narrow screen) — evict the LRU window',
   callback = function()
     local main_wins = vim.tbl_filter(is_main_win, vim.api.nvim_list_wins())
-    if #main_wins <= 4 then return end
+    if #main_wins <= max_main_wins() then return end
 
     -- Find the oldest main window still in the focus-order list
     local main_set = {}
