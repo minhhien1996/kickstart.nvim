@@ -597,24 +597,45 @@ do
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-  -- Prompts for an optional exclude pattern (comma-separated for more than
-  -- one) *before* opening the normal live_grep prompt, instead of parsing
-  -- ripgrep flags out of the search text itself — typing `-g '!pattern'`
-  -- inline (via telescope-live-grep-args.nvim) turned out too easy to get
-  -- wrong: it silently splits the query on every space once the prompt
-  -- starts with a quote/dash, breaking multi-word searches. This keeps the
-  -- live_grep search box itself completely plain.
-  vim.keymap.set('n', '<leader>sG', function()
-    vim.ui.input({ prompt = 'Exclude glob(s), comma-separated (blank for none): ' }, function(input)
-      local additional_args = { '--hidden' }
-      for pattern in vim.gsplit(input or '', ',') do
-        pattern = vim.trim(pattern)
-        if pattern ~= '' then vim.list_extend(additional_args, { '-g', '!' .. pattern }) end
+  -- Plain live_grep, except a literal ` -g ` anywhere in the prompt marks
+  -- the start of inline ripgrep glob args, e.g. typing
+  -- `findme -g !node_modules -g !*.md` excludes both paths, appended (or
+  -- removed) live as you keep typing/see results -- no need to know the
+  -- exclusion up front. This is deliberately NOT a general shell-arg
+  -- parser (that's telescope-live-grep-args.nvim, which we tried and
+  -- dropped: it silently splits every space once the prompt happens to
+  -- start with a quote/dash, mangling multi-word searches). Only the one
+  -- fixed ` -g ` marker is special, so search text before it always keeps
+  -- every space and character exactly as typed.
+  local function live_grep_with_inline_glob()
+    local base_args = vim.deepcopy(require('telescope.config').values.vimgrep_arguments)
+    vim.list_extend(base_args, { '--hidden' })
+
+    local cmd_generator = function(prompt)
+      if not prompt or prompt == '' then return nil end
+      local marker_start = prompt:find ' %-g '
+      local search_term = marker_start and prompt:sub(1, marker_start - 1) or prompt
+      if search_term == '' then return nil end
+
+      local args = vim.deepcopy(base_args)
+      if marker_start then
+        for glob in prompt:sub(marker_start):gmatch '%-g%s+(%S+)' do
+          vim.list_extend(args, { '-g', (glob:gsub('^([\'"])(.*)%1$', '%2')) })
+        end
       end
-      builtin.live_grep { additional_args = additional_args }
-    end)
-  end, { desc = '[S]earch by [G]rep, excluding a pattern' })
+      return vim.iter({ args, '--', search_term }):flatten():totable()
+    end
+
+    require('telescope.pickers')
+      .new({}, {
+        prompt_title = 'Live Grep',
+        finder = require('telescope.finders').new_job(cmd_generator, require('telescope.make_entry').gen_from_vimgrep {}, nil, nil),
+        previewer = require('telescope.config').values.grep_previewer {},
+        sorter = require('telescope.sorters').highlighter_only {},
+      })
+      :find()
+  end
+  vim.keymap.set('n', '<leader>sg', live_grep_with_inline_glob, { desc = '[S]earch by [G]rep (` -g !pattern` to exclude inline)' })
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
