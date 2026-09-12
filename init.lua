@@ -569,9 +569,13 @@ do
     --
     defaults = {
       debounce = 200,
-      -- mappings = {
-      --   i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-      -- },
+      -- By default only normal-mode <Esc> closes the picker; insert mode's
+      -- <Esc> just drops to normal mode first (needing a second <Esc>).
+      -- Make a single <Esc> close it from insert mode too. (<C-c> already
+      -- does this by default, if you'd rather keep <Esc> for mode-switching.)
+      mappings = {
+        i = { ['<Esc>'] = require('telescope.actions').close },
+      },
     },
     pickers = {
       find_files = { hidden = true },
