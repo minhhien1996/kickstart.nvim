@@ -555,6 +555,7 @@ do
     gh 'nvim-lua/plenary.nvim',
     gh 'nvim-telescope/telescope.nvim',
     gh 'nvim-telescope/telescope-ui-select.nvim',
+    gh 'fdschmidt93/telescope-egrepify.nvim',
   }
   if vim.fn.executable 'make' == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
 
@@ -583,12 +584,25 @@ do
     },
     extensions = {
       ['ui-select'] = { require('telescope.themes').get_dropdown() },
+      egrepify = {
+        -- Default prefixes are #ext (file extension), >folder, &filename --
+        -- all inclusion-only. Add a matching exclusion prefix: !node_modules
+        -- excludes any path containing "node_modules" (plain ripgrep glob
+        -- negation, same mechanism as the built-in prefixes below).
+        prefixes = {
+          ['!'] = {
+            flag = 'glob',
+            cb = function(input) return '!' .. input end,
+          },
+        },
+      },
     },
   }
 
   -- Enable Telescope extensions if they are installed
   pcall(require('telescope').load_extension, 'fzf')
   pcall(require('telescope').load_extension, 'ui-select')
+  pcall(require('telescope').load_extension, 'egrepify')
 
   -- See `:help telescope.builtin`
   local builtin = require 'telescope.builtin'
@@ -597,16 +611,23 @@ do
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  -- Plain live_grep. To exclude something after seeing noisy results,
-  -- press <C-Space> (telescope's built-in "fuzzy refine" action) to lock
-  -- in the current ripgrep matches and switch the prompt into fuzzy-filter
-  -- mode over them, powered by the already-installed
-  -- telescope-fzf-native.nvim -- which supports real fzf query syntax,
-  -- including `!term` to exclude entries containing it (matches against
-  -- the full line, path included, so `!node_modules` works). No custom
-  -- prompt parsing needed; both hand-rolled attempts at inline `-g` exclude
-  -- syntax broke on spaces in the search term.
-  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep (<C-Space> to fuzzy-refine/exclude with !term)' })
+  -- telescope-egrepify.nvim instead of plain live_grep: space-separated
+  -- words are AND-matched regardless of exact spacing/adjacency (toggle
+  -- with <C-a>; <C-r> additionally makes word order not matter either),
+  -- and a token can be prefixed to filter without any custom parsing of
+  -- our own: #lua,md (extension), >folder (path contains), &name
+  -- (filename contains), !node_modules (path excludes -- added above in
+  -- extensions.egrepify.prefixes). Toggle prefix-parsing with <C-z>.
+  vim.keymap.set(
+    'n',
+    '<leader>sg',
+    function()
+      require('telescope').extensions.egrepify.egrepify {
+        vimgrep_arguments = vim.list_extend(vim.deepcopy(require('telescope.config').values.vimgrep_arguments), { '--hidden' }),
+      }
+    end,
+    { desc = '[S]earch by [G]rep (space-separated AND terms; !pattern excludes)' }
+  )
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
