@@ -447,19 +447,15 @@ do
   -- change the command under that to load whatever the name of that colorscheme is.
   --
   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  vim.pack.add { gh 'folke/tokyonight.nvim' }
-  ---@diagnostic disable-next-line: missing-fields
-  require('tokyonight').setup {
-    styles = {
-      comments = { italic = false }, -- Disable italics in comments
-    },
+  vim.pack.add { gh 'polirritmico/monokai-nightasty.nvim' }
+  require('monokai-nightasty').setup {
+    hl_styles = { comments = { italic = false } }, -- Disable italics in comments
   }
 
-  -- Load the colorscheme here. The unsuffixed 'tokyonight' name picks day vs.
-  -- a dark style based on 'background', which lua/custom/plugins/auto-dark-mode.lua
-  -- keeps in sync with the OS appearance setting. Load a fixed variant instead
-  -- (e.g. 'tokyonight-storm', 'tokyonight-moon', 'tokyonight-day') to opt out.
-  vim.cmd.colorscheme 'tokyonight'
+  -- Load the colorscheme here. 'monokai-nightasty' picks its dark or light
+  -- variant based on 'background', which lua/custom/plugins/auto-dark-mode.lua
+  -- keeps in sync with the OS appearance setting.
+  vim.cmd.colorscheme 'monokai-nightasty'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
