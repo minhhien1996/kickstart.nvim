@@ -47,4 +47,11 @@ require('edgy').setup {
     left = { size = 0.20 },
     right = { size = 0.40 },
   },
+  -- The slide-in/out animation defaults (30 fps, 120 cells/s) feel laggy;
+  -- a higher frame rate and speed make it quick and smooth. Set
+  -- `enabled = false` to skip the animation entirely.
+  animate = {
+    fps = 60,
+    cps = 480,
+  },
 }
