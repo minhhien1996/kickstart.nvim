@@ -1,25 +1,14 @@
--- Glow — Markdown preview in a floating window
+-- markview.nvim — Markdown (and more) renderer inside the buffer
 --
--- Opens a rendered Markdown preview (via the `glow` CLI) in a floating
--- window with :Glow. Works on the current buffer or any .md file.
--- Requires `glow` to be installed: brew install glow
+-- Renders Markdown, LaTeX, HTML, typst, and YAML front-matter directly in
+-- the buffer using extmarks — no external binary required. Replaces glow.nvim.
 
 -- [[ Install ]]
-vim.pack.add { 'https://github.com/ellisonleao/glow.nvim' }
+vim.pack.add { 'https://github.com/OXY2DEV/markview.nvim' }
 
 -- [[ Setup ]]
-require('glow').setup {
-  -- Use the system glow binary installed by Homebrew.
-  glow_path = '/opt/homebrew/bin/glow',
-  -- Open in a centred floating window (default).
-  style = 'dark',
-  width = 120,
-  height = 100,
-  width_ratio = 0.85,
-  height_ratio = 0.85,
-  border = 'rounded',
-}
+require('markview').setup {}
 
 -- [[ Keymaps ]]
--- <leader>mp  — preview current markdown file
-vim.keymap.set('n', '<leader>mp', '<cmd>Glow<cr>', { desc = '[M]arkdown [P]review (Glow)' })
+-- <leader>mp  — toggle markview rendering in the current buffer
+vim.keymap.set('n', '<leader>mp', '<cmd>Markview toggle<cr>', { desc = '[M]arkdown [P]review (markview)' })

@@ -222,6 +222,20 @@ do
     callback = function() vim.bo.scrollback = 50000 end,
   })
 
+  -- Reload buffers changed on disk automatically.
+  -- autoread alone isn't enough — Neovim only acts on it when it has a reason
+  -- to check, so we trigger :checktime on the events most likely to reveal a
+  -- stale buffer. CursorHold fires after `updatetime` ms of inactivity (default
+  -- 4000ms); FocusGained fires when the terminal regains focus (e.g. switching
+  -- back from another app or running a shell command that modifies files).
+  vim.o.autoread = true
+  vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
+    desc = 'Check for file changes on disk',
+    callback = function()
+      if vim.fn.getcmdwintype() == '' and vim.bo.buftype ~= 'terminal' then vim.cmd 'checktime' end
+    end,
+  })
+
   vim.api.nvim_create_autocmd('FileType', {
     pattern = 'qf',
     callback = function()
