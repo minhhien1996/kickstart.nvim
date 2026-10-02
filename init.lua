@@ -616,11 +616,20 @@ do
 
   -- See `:help telescope.builtin`
   local builtin = require 'telescope.builtin'
+
+  -- git rev-parse --show-toplevel correctly resolves the worktree root (not
+  -- the main worktree) when inside a git worktree, so file search stays scoped
+  -- to the right project rather than wherever nvim was launched from.
+  local function git_root()
+    local result = vim.system({ 'git', 'rev-parse', '--show-toplevel' }, { text = true }):wait()
+    return result.code == 0 and result.stdout:gsub('\n', '') or vim.fn.getcwd()
+  end
+
   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
   vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-  vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+  vim.keymap.set('n', '<leader>sf', function() builtin.find_files { cwd = git_root() } end, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-  vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
+  vim.keymap.set({ 'n', 'v' }, '<leader>sw', function() builtin.grep_string { cwd = git_root() } end, { desc = '[S]earch current [W]ord' })
   -- telescope-egrepify.nvim instead of plain live_grep: space-separated
   -- words are AND-matched regardless of exact spacing/adjacency (toggle
   -- with <C-a>; <C-r> additionally makes word order not matter either),
@@ -633,6 +642,7 @@ do
     '<leader>sg',
     function()
       require('telescope').extensions.egrepify.egrepify {
+        cwd = git_root(),
         vimgrep_arguments = vim.list_extend(vim.deepcopy(require('telescope.config').values.vimgrep_arguments), { '--hidden' }),
       }
     end,
