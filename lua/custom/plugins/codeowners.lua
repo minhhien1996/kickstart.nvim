@@ -3,8 +3,8 @@
 -- based on https://github.com/jasonnutter/vscode-codeowners
 
 local _git_root_cache = {} -- dir → root path, or false if not a repo
-local _co_cache = {}       -- codeowners path → { mtime, entries }
-local _owners_cache = {}   -- bufnr → owners string, or false if none/no CODEOWNERS
+local _co_cache = {} -- codeowners path → { mtime, entries }
+local _owners_cache = {} -- bufnr → owners string, or false if none/no CODEOWNERS
 
 local function glob_to_lua(glob)
   local s = glob:gsub('([%.%+%-%^%$%(%)%[%]%%])', '%%%1')
@@ -18,9 +18,7 @@ local function path_matches(rel_path, glob)
   local anchored = glob:sub(1, 1) == '/'
   local g = (anchored and glob:sub(2) or glob):gsub('/$', '')
   local pat = glob_to_lua(g)
-  if anchored then
-    return rel_path:match('^' .. pat .. '$') ~= nil or rel_path:match('^' .. pat .. '/') ~= nil
-  end
+  if anchored then return rel_path:match('^' .. pat .. '$') ~= nil or rel_path:match('^' .. pat .. '/') ~= nil end
   return rel_path:match('^' .. pat .. '$') ~= nil
     or rel_path:match('^' .. pat .. '/') ~= nil
     or rel_path:match('/' .. pat .. '$') ~= nil
@@ -28,9 +26,7 @@ local function path_matches(rel_path, glob)
 end
 
 local function get_git_root(dir)
-  if _git_root_cache[dir] ~= nil then
-    return _git_root_cache[dir] or nil
-  end
+  if _git_root_cache[dir] ~= nil then return _git_root_cache[dir] or nil end
   local out = vim.fn.system('git -C ' .. vim.fn.shellescape(dir) .. ' rev-parse --show-toplevel 2>/dev/null')
   local root = vim.v.shell_error == 0 and vim.trim(out) or false
   _git_root_cache[dir] = root
@@ -47,7 +43,7 @@ end
 local function parse_codeowners(co_path)
   local entries = {}
   for line in io.lines(co_path) do
-    if line ~= '' and not line:match('^%s*#') then
+    if line ~= '' and not line:match '^%s*#' then
       local parts = vim.split(line, '%s+', { trimempty = true })
       if #parts >= 1 then
         local owners = {}
@@ -71,18 +67,14 @@ local function lookup_owners(filepath)
 
   local mtime = vim.fn.getftime(co_path)
   local cached = _co_cache[co_path]
-  if not cached or cached.mtime ~= mtime then
-    _co_cache[co_path] = { mtime = mtime, entries = parse_codeowners(co_path) }
-  end
+  if not cached or cached.mtime ~= mtime then _co_cache[co_path] = { mtime = mtime, entries = parse_codeowners(co_path) } end
 
   local rel_path = filepath:sub(#git_root + 2)
   local entries = _co_cache[co_path].entries
 
   for i = #entries, 1, -1 do
     local e = entries[i]
-    if path_matches(rel_path, e.pattern) then
-      return #e.owners > 0 and table.concat(e.owners, ' ') or nil
-    end
+    if path_matches(rel_path, e.pattern) then return #e.owners > 0 and table.concat(e.owners, ' ') or nil end
   end
 end
 
