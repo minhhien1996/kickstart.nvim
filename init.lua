@@ -769,6 +769,9 @@ do
       --  For example, in C this would take you to the header.
       map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
+      -- Classic jump-to-definition binding (grd opens the Telescope picker instead)
+      map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+
       -- The following two autocommands are used to highlight references of the
       -- word under your cursor when your cursor rests there for a little while.
       --    See `:help CursorHold` for information about when this is executed
@@ -822,7 +825,7 @@ do
     --    https://github.com/pmizio/typescript-tools.nvim
     --
     -- But for many setups, the LSP (`ts_ls`) will work just fine
-    -- ts_ls = {},
+    ts_ls = {}, -- JavaScript / TypeScript / Node.js (installs typescript-language-server via Mason)
 
     stylua = {}, -- Used to format Lua code
 
