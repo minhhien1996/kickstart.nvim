@@ -772,6 +772,22 @@ do
       -- Classic jump-to-definition binding (grd opens the Telescope picker instead)
       map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
 
+      -- Same, but in a new vertical split (<C-w>gd) or horizontal split (<C-w>gD).
+      -- Multiple results go to the quickfix list instead of picking one blindly.
+      local function definition_in_split(split_cmd)
+        return function()
+          vim.lsp.buf.definition {
+            on_list = function(opts)
+              vim.cmd(split_cmd)
+              vim.fn.setqflist({}, ' ', opts)
+              vim.cmd 'cfirst'
+            end,
+          }
+        end
+      end
+      map('<C-w>gd', definition_in_split 'vsplit', '[G]oto [D]efinition in vertical split')
+      map('<C-w>gD', definition_in_split 'split', '[G]oto [D]efinition in horizontal split')
+
       -- The following two autocommands are used to highlight references of the
       -- word under your cursor when your cursor rests there for a little while.
       --    See `:help CursorHold` for information about when this is executed
