@@ -10,6 +10,8 @@ vim.pack.add { 'https://github.com/coder/claudecode.nvim' }
 
 -- [[ Setup ]]
 require('claudecode').setup {
+  -- --model beats the org default model (Haiku), which overrides `model` in ~/.claude/settings.json.
+  terminal_cmd = 'claude --model sonnet',
   terminal = {
     -- Use Neovim's built-in terminal split so this doesn't pull in snacks.nvim.
     provider = 'native',
